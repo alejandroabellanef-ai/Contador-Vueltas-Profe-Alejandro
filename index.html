@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contador de Vueltas QR - Educación Física</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="nav-container">
+                <h1 class="nav-title">Contador de Vueltas QR</h1>
+                <div class="nav-links">
+                    <button class="nav-link active" data-page="home">Inicio</button>
+                    <button class="nav-link" data-page="students">Alumnos</button>
+                    <button class="nav-link" data-page="session">Nueva Sesión</button>
+                    <button class="nav-link" data-page="scanner">Escáner</button>
+                    <button class="nav-link" data-page="results">Resultados</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Pages -->
+        <main class="main-content">
+            <!-- Home Page -->
+            <div id="page-home" class="page active">
+                <div class="hero">
+                    <h2 class="hero-title">Sistema de Control de Vueltas con Códigos QR</h2>
+                    <p class="hero-description">
+                        Herramienta digital para profesores de Educación Física que permite llevar un control preciso
+                        de las vueltas que dan los alumnos en circuitos deportivos mediante códigos QR.
+                    </p>
+                    <div class="hero-cards">
+                        <div class="card">
+                            <div class="card-icon">👥</div>
+                            <h3>Gestión de Alumnos</h3>
+                            <p>Añade alumnos y genera códigos QR únicos para cada uno</p>
+                            <button class="btn btn-primary" onclick="navigateTo('students')">Gestionar Alumnos</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon">📊</div>
+                            <h3>Nueva Sesión</h3>
+                            <p>Configura una nueva sesión de entrenamiento con distancia por vuelta</p>
+                            <button class="btn btn-primary" onclick="navigateTo('session')">Crear Sesión</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon">📷</div>
+                            <h3>Escanear QR</h3>
+                            <p>Escanea los códigos QR de los alumnos al pasar por la zona de control</p>
+                            <button class="btn btn-primary" onclick="navigateTo('scanner')">Iniciar Escáner</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Page -->
+            <div id="page-students" class="page">
+                <div class="page-header">
+                    <h2>Gestión de Alumnos</h2>
+                    <p>Añade alumnos y genera sus códigos QR para imprimir</p>
+                </div>
+                
+                <div class="card">
+                    <h3>Añadir Nuevo Alumno</h3>
+                    <form id="add-student-form" class="form">
+                        <div class="form-group">
+                            <label for="student-name">Nombre del Alumno</label>
+                            <input type="text" id="student-name" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Añadir Alumno</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Lista de Alumnos</h3>
+                        <button class="btn btn-secondary" onclick="printAllQR()">Imprimir Todos los QR</button>
+                    </div>
+                    <div id="students-list" class="students-list"></div>
+                </div>
+            </div>
+
+            <!-- Print QR Page (Hidden) -->
+            <div id="print-qr-container" class="print-container" style="display: none;"></div>
+
+            <!-- Session Page -->
+            <div id="page-session" class="page">
+                <div class="page-header">
+                    <h2>Nueva Sesión de Entrenamiento</h2>
+                    <p>Configura los parámetros de la sesión</p>
+                </div>
+                
+                <div class="card">
+                    <form id="new-session-form" class="form">
+                        <div class="form-group">
+                            <label for="session-name">Nombre de la Sesión</label>
+                            <input type="text" id="session-name" placeholder="Ej: Carrera de Resistencia" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="distance-per-lap">Distancia por Vuelta (metros)</label>
+                            <input type="number" id="distance-per-lap" placeholder="Ej: 400" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Scanner Page -->
+            <div id="page-scanner" class="page">
+                <div class="page-header">
+                    <h2>Escáner de Códigos QR</h2>
+                    <p id="scanner-status">Esperando sesión activa...</p>
+                </div>
+                
+                <div class="scanner-container">
+                    <div id="qr-reader" class="qr-reader"></div>
+                    <div id="scanner-info" class="scanner-info">
+                        <div class="info-card">
+                            <h3>Última Detección</h3>
+                            <p id="last-scan">Ninguna</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Total de Escaneos</h3>
+                            <p id="total-scans">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Actividad Reciente</h3>
+                    <div id="recent-scans" class="recent-scans"></div>
+                </div>
+
+                <button class="btn btn-danger" onclick="endSession()">Finalizar Sesión</button>
+            </div>
+
+            <!-- Results Page -->
+            <div id="page-results" class="page">
+                <div class="page-header">
+                    <h2>Resultados de Sesiones</h2>
+                    <p>Consulta las estadísticas de las sesiones completadas</p>
+                </div>
+                
+                <div id="sessions-list" class="sessions-list"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
